@@ -3,29 +3,14 @@ const AppError = require("../utils/AppError");
 
 const sqliteConnection = require("../database/sqlite");
 const UserRepository = require("../repositories/UserRepository");
+const UserCreateService = require("../services/UserCreateService");
 
 class UsersController {
-  /** O controller poder ter no máximo 5 métodos
-   * index - GET para listar vários registros.
-   * show - GET para exibir um registro específico.
-   * create - POST para criar um registro.
-   * update - PUT para atualizar um registro.
-   * delete - DELETE para remover um registro.
-   */
-  async create(resquest, response) {
-    const { name, email, password } = resquest.body;
-
+  async create(request, response) {
+    const { name, email, password } = request.body;
     const userRepository = new UserRepository();
-
-    const checkUserExists = await userRepository.findByEmail(email);
-
-    if (checkUserExists) {
-      throw new AppError("Este e-mail já está em uso.");
-    }
-
-    const hashedPassword = await hash(password, 8);
-
-    await userRepository.create({ name, email, password: hashedPassword });
+    const userCreateService = new UserCreateService(userRepository);
+    await userCreateService.execute({ name, email, password });
 
     return response.status(201).json();
   }
